@@ -191,7 +191,106 @@ function ExtractDeploymentAgentZipFile {
     }
     
     Write-Log -Message "Extracting 'Deployagent.zip' file into '$DeployAgentLocation' folder inside VM"
-    Expand-Archive $DeployAgentFromRepo -DestinationPath "$DeployAgentLocation" 
-    
+    Expand-Archive $DeployAgentFromRepo -DestinationPath "$DeployAgentLocation"
 }
 
+function isRdshServer {
+    $rdshIsServer = $true
+
+    $OSVersionInfo = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+    
+    if ($null -ne $OSVersionInfo) {
+        if ($null -ne $OSVersionInfo.InstallationType) {
+            $rdshIsServer = @{$true = $true; $false = $false }[$OSVersionInfo.InstallationType -eq "Server"]
+        }
+    }
+
+    return $rdshIsServer
+}
+
+function AuthenticateRdsAccount {
+    param(
+        [Parameter(mandatory = $true)]
+        [string]$DeploymentUrl,
+    
+        [Parameter(mandatory = $true)]
+        [pscredential]$Credential,
+    
+        [switch]$ServicePrincipal,
+    
+        [Parameter(mandatory = $false)]
+        [AllowEmptyString()]
+        [string]$TenantId = ""
+    )
+    
+    if ($ServicePrincipal) {
+        Write-Log -Message "Authenticating using service principal $Credential.username and Tenant id: $TenantId "
+    }
+    else {
+        Write-Log -Message "Authenticating using user $($Credential.username) "
+    }
+
+    $authentication = $null
+    try {
+        $authentication = Add-RdsAccount @PSBoundParameters
+        if (!$authentication) {
+            throw $authentication
+        }
+    }
+    catch {
+        $errMsg = "Windows Virtual Desktop Authentication Failed, Error:`n$($_ | Out-String)"
+        Write-Log -Error "$errMsg"
+        throw "$errMsg"
+    }
+    Write-Log -Message "Windows Virtual Desktop Authentication successfully Done. Result:`n$($authentication | Out-String)"
+}
+
+function SetTenantContextAndValidate {
+    param(
+        [Parameter(mandatory = $true)]
+        [string]$definedTenantGroupName,
+
+        [Parameter(mandatory = $true)]
+        [string]$TenantName
+    )
+    #//todo refactor
+    #//todo try catch ?
+    # Set context to the appropriate tenant group
+    $currentTenantGroupName = (Get-RdsContext).TenantGroupName
+    if ($definedTenantGroupName -ne $currentTenantGroupName) {
+        Write-Log -Message "Running switching to the $definedTenantGroupName context"
+        Set-RdsContext -TenantGroupName $definedTenantGroupName
+    }
+    try {
+        $tenants = Get-RdsTenant -Name "$TenantName"
+        if (!$tenants) {
+            Write-Log "No tenants exist or you do not have proper access."
+            #//todo throw ?
+        }
+    }
+    catch {
+        #//todo refactor msg ?
+        Write-Log -Message $_
+        throw $_
+    }
+}
+
+function ExtractAndImportPSRDModule {
+    param(
+        [Parameter(mandatory = $true)]
+        [string]$ScriptPath,
+
+        [Parameter(mandatory = $false)]
+        [string]$DeployAgentLocation = 'C:\DeployAgent'
+    )
+
+    Write-Log -Message "Creating a folder inside rdsh vm for extracting deployagent zip file"
+    ExtractDeploymentAgentZipFile -ScriptPath $ScriptPath -DeployAgentLocation $DeployAgentLocation
+    
+    Write-Log -Message "Changing current folder to Deployagent folder: $DeployAgentLocation"
+    Set-Location "$DeployAgentLocation"
+    
+    # Importing Windows Virtual Desktop PowerShell module
+    Import-Module .\PowershellModules\Microsoft.RDInfra.RDPowershell.dll
+    Write-Log -Message "Imported Windows Virtual Desktop PowerShell modules successfully"
+}
