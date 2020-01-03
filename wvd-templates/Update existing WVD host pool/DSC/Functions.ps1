@@ -171,17 +171,17 @@ function Is1809OrLater {
 function ExtractDeploymentAgentZipFile {
     param
     ( 
-        [Parameter(Mandatory = $true)] 
+        [Parameter(Mandatory = $true)]
         [string]$ScriptPath,
-        [Parameter(Mandatory = $true)] 
+        [Parameter(Mandatory = $true)]
         [string]$DeployAgentLocation
-    ) 
+    )
 
     if (Test-Path $DeployAgentLocation) {
         Remove-Item -Path $DeployAgentLocation -Force -Confirm:$false -Recurse
     }
     
-    New-Item -Path "$DeployAgentLocation" -ItemType directory -Force 
+    New-Item -Path "$DeployAgentLocation" -ItemType directory -Force
     
     # Locating and extracting DeployAgent.zip
     Write-Log -Message "Locating DeployAgent.zip within Custom Script Extension folder structure: $ScriptPath"
@@ -227,6 +227,8 @@ function AuthenticateRdsAccount {
         Write-Log -Message "Authenticating using service principal $Credential.username and Tenant id: $TenantId "
     }
     else {
+        $PSBoundParameters.Remove('ServicePrincipal')
+        $PSBoundParameters.Remove('TenantId')
         Write-Log -Message "Authenticating using user $($Credential.username) "
     }
 
