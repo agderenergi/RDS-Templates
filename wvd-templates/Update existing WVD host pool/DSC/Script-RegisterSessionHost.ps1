@@ -65,7 +65,27 @@ if ($CheckRegistry) {
 Write-Log -Message "VM not registered with RDInfraAgent, script execution will continue"
 
 # Authenticating to Windows Virtual Desktop
-AuthenticateRdsAccount -DeploymentUrl $RDBrokerURL -Credential $TenantAdminCredentials -ServicePrincipal:($isServicePrincipal -eq "True") -TenantId $AadTenantId
+# AuthenticateRdsAccount -DeploymentUrl $RDBrokerURL -Credential $TenantAdminCredentials -ServicePrincipal:($isServicePrincipal -eq "True") -TenantId $AadTenantId
+$authentication = $null
+try {
+    if ($isServicePrincipal -eq "True") {
+        Write-Log -Message "Authenticating using service principal $($TenantAdminCredentials.username) and Tenant id: $AadTenantId "
+        $authentication = Add-RdsAccount -DeploymentUrl $RDBrokerURL -Credential $TenantAdminCredentials -ServicePrincipal -TenantId $AadTenantId
+    }
+    else {
+        Write-Log -Message "Authenticating using user $($TenantAdminCredentials.username)"
+        $authentication = Add-RdsAccount -DeploymentUrl $RDBrokerURL -Credential $TenantAdminCredentials
+    }
+    if (!$authentication) {
+        throw $authentication
+    }
+}
+catch {
+    $errMsg = "Windows Virtual Desktop Authentication Failed, Error:`n$($_ | Out-String)"
+    Write-Log -Error "$errMsg"
+    throw "$errMsg"
+}
+Write-Log -Message "Windows Virtual Desktop Authentication successfully Done. Result:`n$($authentication | Out-String)"
 
 # Set context to the appropriate tenant group
 $currentTenantGroupName = (Get-RdsContext).TenantGroupName

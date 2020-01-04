@@ -229,7 +229,7 @@ function AuthenticateRdsAccount {
     else {
         $PSBoundParameters.Remove('ServicePrincipal')
         $PSBoundParameters.Remove('TenantId')
-        Write-Log -Message "Authenticating using user $($Credential.username) "
+        Write-Log -Message "Authenticating using user $($Credential.username)"
     }
 
     $authentication = $null
