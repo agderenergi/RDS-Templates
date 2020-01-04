@@ -293,6 +293,8 @@ function ExtractAndImportPSRDModule {
     Set-Location "$DeployAgentLocation"
     
     # Importing Windows Virtual Desktop PowerShell module
-    Import-Module .\PowershellModules\Microsoft.RDInfra.RDPowershell.dll
+    #//todo confirm
+    # Import-Module .\PowershellModules\Microsoft.RDInfra.RDPowershell.dll
+    Install-Module Microsoft.RDInfra.RDPowershell -Scope 'Local'
     Write-Log -Message "Imported Windows Virtual Desktop PowerShell modules successfully"
 }
