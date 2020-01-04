@@ -78,7 +78,7 @@ ValidateServicePrincipal -IsServicePrincipal $isServicePrincipal -AADTenantId $A
 ExtractAndImportPSRDModule -ScriptPath $ScriptPath
 
 # Authenticating to Windows Virtual Desktop
-AuthenticateRdsAccount -DeploymentUrl $RDBrokerURL -Credential $TenantAdminCredentials -ServicePrincipal:($isServicePrincipal -eq "True") -TenantId $AadTenantId
+. AuthenticateRdsAccount -DeploymentUrl $RDBrokerURL -Credential $TenantAdminCredentials -ServicePrincipal:($isServicePrincipal -eq "True") -TenantId $AadTenantId
 
 # Set context to the appropriate tenant group
 SetTenantContextAndValidate -definedTenantGroupName $definedTenantGroupName -TenantName $TenantName
