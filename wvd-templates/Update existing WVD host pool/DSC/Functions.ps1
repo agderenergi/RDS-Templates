@@ -128,10 +128,10 @@ function Write-Log {
         $DateTime = Get-Date -Format "MM-dd-yy HH:mm:ss"
         $Invocation = "$($MyInvocation.MyCommand.Source):$($MyInvocation.ScriptLineNumber)" 
         if ($Message) {
-            Add-Content -Value "$DateTime - $Invocation - $Message" -Path "$([environment]::GetEnvironmentVariable('TEMP', 'Machine'))\ScriptLog.log" 
+            Add-Content -Value "$DateTime - $Invocation - $Message" -Path "$([environment]::GetEnvironmentVariable('TEMP', 'Machine'))\ScriptLog.log"
         }
         else {
-            Add-Content -Value "$DateTime - $Invocation - $Error" -Path "$([environment]::GetEnvironmentVariable('TEMP', 'Machine'))\ScriptLog.log" 
+            Add-Content -Value "$DateTime - $Invocation - $Error" -Path "$([environment]::GetEnvironmentVariable('TEMP', 'Machine'))\ScriptLog.log"
         }
     }
     catch {
@@ -295,6 +295,6 @@ function ExtractAndImportPSRDModule {
     # Importing Windows Virtual Desktop PowerShell module
     #//todo confirm
     # Import-Module .\PowershellModules\Microsoft.RDInfra.RDPowershell.dll
-    Install-Module Microsoft.RDInfra.RDPowershell -Scope 'Local'
+    Install-Module Microsoft.RDInfra.RDPowershell -Scope 'CurrentUser'
     Write-Log -Message "Imported Windows Virtual Desktop PowerShell modules successfully"
 }
