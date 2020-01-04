@@ -52,7 +52,7 @@ $ScriptPath = [System.IO.Path]::GetDirectoryName($PSCommandPath)
 # Dot sourcing Functions.ps1 file
 . (Join-Path $ScriptPath "Functions.ps1")
 
-write-log -message "Script being executed: $ScriptPath"
+write-log -message "Script being executed: Test cleanup of old session hosts"
 
 # Testing if it is a ServicePrincipal and validade that AadTenant ID in this case is not null or empty
 ValidateServicePrincipal -IsServicePrincipal $isServicePrincipal -AADTenantId $AadTenantId
